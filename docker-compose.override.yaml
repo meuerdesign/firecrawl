@@ -1,0 +1,27 @@
+# Bind the API to localhost on the host so it is NOT reachable from the LAN.
+# To allow Tailscale access, replace "127.0.0.1" with your Tailscale IP (e.g. "100.x.y.z").
+# To allow LAN access, delete the api ports block (the base compose binds to 0.0.0.0).
+
+services:
+  api:
+    ports: !override
+      - "127.0.0.1:${PORT:-3002}:${INTERNAL_PORT:-3002}"
+
+  nuq-postgres:
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  rabbitmq:
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  redis:
+    # Enable AOF for durable persistence (queue/rate-limit state survives restart).
+    command: redis-server --bind 0.0.0.0 --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  pgdata:
+  rabbitmq_data:
+  redis_data:
